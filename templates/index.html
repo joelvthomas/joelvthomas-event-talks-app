@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Console</title>
+    <meta name="description" content="A premium, interactive console to browse BigQuery Release Notes, filter updates, and share insights directly on Twitter/X.">
+    <meta name="author" content="Antigravity Developer Console">
+    
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dark-theme">
+    <!-- Background Gradient Grids -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+    
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-section">
+                <div class="logo-container">
+                    <svg class="bq-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2005/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#grad-blue)" />
+                        <path d="M2 17L12 22L22 17V12L12 17L2 12V17Z" fill="url(#grad-purple)" />
+                        <path d="M2 12L12 17L22 12V7L12 12L2 7V12Z" fill="url(#grad-cyan)" />
+                        <defs>
+                            <linearGradient id="grad-blue" x1="2" y1="2" x2="22" y2="12" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#4285F4"/>
+                                <stop offset="1" stop-color="#34A853"/>
+                            </linearGradient>
+                            <linearGradient id="grad-purple" x1="2" y1="12" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#EA4335"/>
+                                <stop offset="1" stop-color="#4285F4"/>
+                            </linearGradient>
+                            <linearGradient id="grad-cyan" x1="2" y1="7" x2="22" y2="17" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#FBBC05"/>
+                                <stop offset="1" stop-color="#EA4335"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="title-group">
+                    <h1 id="app-title">BigQuery Release Notes</h1>
+                    <p class="subtitle">Stay updated with Google BigQuery feed updates and broadcast summaries easily</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="last-sync-tag">
+                    <span class="pulse-indicator"></span>
+                    <span id="sync-time-label">Syncing...</span>
+                </div>
+                <button id="btn-refresh" class="btn btn-secondary btn-icon" title="Refresh Release Notes">
+                    <svg class="icon spinner-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2005/svg">
+                        <path d="M21.5 2V6H17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21.34 11.5A9 9 0 1 1 18.53 5.47L21.5 8.41" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <!-- Control Center: Search & Filter -->
+        <section class="control-panel" aria-label="Filters and Search">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2005/svg">
+                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                    <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input type="text" id="search-input" placeholder="Search updates, keywords, docs..." aria-label="Search release notes">
+                <button id="search-clear-btn" class="search-clear-hidden" title="Clear Search">×</button>
+            </div>
+            
+            <div class="filter-wrapper">
+                <div class="filter-scroll" id="type-filters">
+                    <button class="filter-pill active" data-type="all">All Updates</button>
+                    <button class="filter-pill" data-type="Feature">Features</button>
+                    <button class="filter-pill" data-type="Changed">Changes</button>
+                    <button class="filter-pill" data-type="Deprecated">Deprecated</button>
+                    <button class="filter-pill" data-type="Issue">Issues</button>
+                    <button class="filter-pill" data-type="Resolved">Resolved</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Release Timeline Content -->
+        <section class="timeline-section">
+            <!-- Loading Indicator -->
+            <div id="loading-state" class="state-container">
+                <div class="spinner-large"></div>
+                <h2>Fetching BigQuery Release Notes</h2>
+                <p>Retrieving latest documentation feed from Google Cloud...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="state-container hidden">
+                <div class="error-badge">!</div>
+                <h2>Oops! Connection Error</h2>
+                <p id="error-message">Could not retrieve release notes from the server.</p>
+                <button id="btn-retry" class="btn btn-primary">Try Again</button>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="state-container hidden">
+                <div class="empty-badge">🔍</div>
+                <h2>No Results Found</h2>
+                <p>Try refining your search query or choosing a different filter pill.</p>
+                <button id="btn-clear-filters" class="btn btn-secondary">Clear Filters</button>
+            </div>
+
+            <!-- Content List -->
+            <div id="release-notes-container" class="timeline-container hidden">
+                <!-- Data dynamically inserted here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Action Bar for Multiple Selection -->
+    <aside id="floating-bar" class="floating-bar hidden">
+        <div class="floating-bar-content">
+            <div class="selection-count-group">
+                <span class="selection-badge" id="selection-count">0</span>
+                <span class="selection-label">Updates selected</span>
+            </div>
+            <div class="floating-bar-actions">
+                <button id="btn-clear-selection" class="btn btn-ghost">Deselect All</button>
+                <button id="btn-tweet-selected" class="btn btn-primary btn-tweet">
+                    <svg class="x-logo-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2005/svg">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span>Draft Tweet</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Tweet Composer Modal -->
+    <div id="tweet-modal" class="modal-overlay hidden" aria-modal="true" role="dialog" aria-labelledby="modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modal-title">Draft Tweet</h2>
+                <button id="btn-close-modal" class="btn-close-circle" title="Close Modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="template-selector-group">
+                    <label>Choose Tone Template:</label>
+                    <div class="template-options">
+                        <button class="btn btn-outline active" data-template="default">Default</button>
+                        <button class="btn btn-outline" data-template="concise">Concise</button>
+                        <button class="btn btn-outline" data-template="excited">Excited</button>
+                        <button class="btn btn-outline" data-template="formal">Formal</button>
+                    </div>
+                </div>
+
+                <div class="editor-container">
+                    <textarea id="tweet-textarea" rows="8" placeholder="Draft your tweet here..."></textarea>
+                    <div class="editor-footer">
+                        <span id="char-counter" class="char-counter">0 / 280</span>
+                    </div>
+                </div>
+
+                <div class="modal-notes">
+                    <p class="modal-tip">💡 <strong>Tip:</strong> URLs are automatically shortened by X/Twitter to 23 characters, which is calculated in the character counter.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-copy-clipboard" class="btn btn-secondary btn-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    <span>Copy Text</span>
+                </button>
+                <button id="btn-post-x" class="btn btn-primary btn-tweet">
+                    <svg class="x-logo-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2005/svg">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span>Post on X</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Manager -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <footer class="app-footer-bar">
+        <p>&copy; 2026 BigQuery Release Notes Console. Designed for BigQuery Administrators and Developers.</p>
+    </footer>
+
+    <!-- App Script -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
